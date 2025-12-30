@@ -1,6 +1,6 @@
 const productsData = require('../../Data/Products');
+const pool = require('../../config/db');
 const { validationResult, matchedData } = require('express-validator');
-const getProductIndex = require('../../Middleware/getProductIndex');
 const getProducts = (req, res) => {
     res.status(200).send(productsData);
 }
@@ -11,15 +11,28 @@ const addProduct = (req, res) => {
         return res.status(400).json({ errors: errors.array().map(error => error.msg) });
     }
     const productData = matchedData(req);
-    const newProduct = {
-        id: productsData.length + 1,
-        ...productData
-    };
-    productsData.push(newProduct);
-    res.status(201).json({
-        message: 'Product added successfully',
-        product: newProduct
+    console.log(productData);
+    const { name, price, category } = productData;
+    const query = 'INSERT INTO product_data (name, price, description) VALUES ($1, $2, $3) RETURNING *';
+    pool.query(query, [name, price, category], (err, result) => {
+        if (err) {
+            console.error('Error executing query', err.stack);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        res.status(201).json({
+            message: 'Product added successfully',
+            product: result.rows[0]
+        });
     });
+    // const newProduct = {
+    //     id: productsData.length + 1,
+    //     ...productData
+    // };
+    // productsData.push(newProduct);
+    // res.status(201).json({
+    //     message: 'Product added successfully',
+    //     product: newProduct
+    // });
 };
 
 

@@ -1,8 +1,9 @@
 const express = require('express');
 require('dotenv').config();
 const app = express();
+const pool = require('./config/db');
 app.use(express.json());
-
+pool.connect();
 app.use('/api/productManagement', require('./Routes/route'));
 
 app.listen(process.env.PORT, () => {
